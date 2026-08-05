@@ -1,0 +1,8 @@
+.vs/
+**/bin/
+**/obj/
+publish/
+*.user
+*.suo
+*.fetchpkg.state.json
+*.fetchpkg.state.json.tmp
