@@ -1,14 +1,21 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="FetchPkg.Desktop.App" Name="FetchPkg" RequestedThemeVariant="Default">
+  <Application.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="avares://FetchPkg/Themes/Colors.axaml" />
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </Application.Resources>
   <Application.Styles>
-    <FluentTheme />
+    <FluentTheme>
+      <FluentTheme.Palettes>
+        <ColorPaletteResources x:Key="Light" Accent="#2563EB" />
+        <ColorPaletteResources x:Key="Dark" Accent="#8CB4FF" />
+      </FluentTheme.Palettes>
+    </FluentTheme>
     <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" />
-    <Style Selector="Button">
-      <Setter Property="Padding" Value="14,8" />
-    </Style>
-    <Style Selector="TextBox">
-      <Setter Property="MinHeight" Value="36" />
-    </Style>
+    <StyleInclude Source="avares://FetchPkg/Themes/Controls.axaml" />
   </Application.Styles>
 </Application>

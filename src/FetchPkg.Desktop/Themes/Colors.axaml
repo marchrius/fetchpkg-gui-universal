@@ -1,0 +1,74 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <ResourceDictionary.ThemeDictionaries>
+    <ResourceDictionary x:Key="Light">
+      <SolidColorBrush x:Key="AppCanvasBrush" Color="#F3F5F9" />
+      <SolidColorBrush x:Key="AppSurfaceBrush" Color="#FFFFFF" />
+      <SolidColorBrush x:Key="AppFieldBrush" Color="#FAFBFD" />
+      <SolidColorBrush x:Key="AppTextBrush" Color="#192538" />
+      <SolidColorBrush x:Key="AppMutedBrush" Color="#596980" />
+      <SolidColorBrush x:Key="AppOutlineBrush" Color="#DCE3EC" />
+      <SolidColorBrush x:Key="AppHeaderBrush" Color="#F5F7FB" />
+      <SolidColorBrush x:Key="AppAccentBrush" Color="#2563EB" />
+      <SolidColorBrush x:Key="AppAccentSoftBrush" Color="#EAF0FF" />
+      <SolidColorBrush x:Key="DataGridRowSelectedBackgroundBrush" Color="#DFEAFE" />
+      <SolidColorBrush x:Key="DataGridRowSelectedHoveredBackgroundBrush" Color="#CFDFFC" />
+      <SolidColorBrush x:Key="DataGridRowSelectedUnfocusedBackgroundBrush" Color="#E7EDF7" />
+      <SolidColorBrush x:Key="DataGridRowSelectedHoveredUnfocusedBackgroundBrush" Color="#DCE6F7" />
+      <SolidColorBrush x:Key="ButtonBackground" Color="#FFFFFF" />
+      <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#EDF2FA" />
+      <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#E2EAF6" />
+      <SolidColorBrush x:Key="ButtonBorderBrush" Color="#DCE3EC" />
+      <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="#BDCBE0" />
+      <SolidColorBrush x:Key="ButtonForeground" Color="#25364D" />
+      <SolidColorBrush x:Key="ButtonForegroundPointerOver" Color="#192538" />
+      <SolidColorBrush x:Key="ButtonForegroundPressed" Color="#192538" />
+      <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#F5F8FF" />
+      <SolidColorBrush x:Key="TextControlPlaceholderForeground" Color="#596980" />
+      <SolidColorBrush x:Key="TextControlPlaceholderForegroundPointerOver" Color="#596980" />
+      <SolidColorBrush x:Key="TextControlPlaceholderForegroundFocused" Color="#596980" />
+      <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="#FFFFFF" />
+      <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="#A5B6CE" />
+    </ResourceDictionary>
+    <ResourceDictionary x:Key="Dark">
+      <SolidColorBrush x:Key="AppCanvasBrush" Color="#101722" />
+      <SolidColorBrush x:Key="AppSurfaceBrush" Color="#182230" />
+      <SolidColorBrush x:Key="AppFieldBrush" Color="#121B28" />
+      <SolidColorBrush x:Key="AppTextBrush" Color="#E7EDF6" />
+      <SolidColorBrush x:Key="AppMutedBrush" Color="#A5B4C9" />
+      <SolidColorBrush x:Key="AppOutlineBrush" Color="#2C3A4D" />
+      <SolidColorBrush x:Key="AppHeaderBrush" Color="#1D293A" />
+      <SolidColorBrush x:Key="AppAccentBrush" Color="#8CB4FF" />
+      <SolidColorBrush x:Key="AppAccentSoftBrush" Color="#243958" />
+      <SolidColorBrush x:Key="DataGridRowSelectedBackgroundBrush" Color="#294264" />
+      <SolidColorBrush x:Key="DataGridRowSelectedHoveredBackgroundBrush" Color="#34557D" />
+      <SolidColorBrush x:Key="DataGridRowSelectedUnfocusedBackgroundBrush" Color="#26394F" />
+      <SolidColorBrush x:Key="DataGridRowSelectedHoveredUnfocusedBackgroundBrush" Color="#304965" />
+      <SolidColorBrush x:Key="AccentButtonForeground" Color="#101722" />
+      <SolidColorBrush x:Key="AccentButtonForegroundPointerOver" Color="#101722" />
+      <SolidColorBrush x:Key="AccentButtonForegroundPressed" Color="#101722" />
+      <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundChecked" Color="#101722" />
+      <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundCheckedPointerOver" Color="#101722" />
+      <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundCheckedPressed" Color="#101722" />
+      <SolidColorBrush x:Key="ButtonBackground" Color="#243247" />
+      <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#2E405B" />
+      <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#344C6C" />
+      <SolidColorBrush x:Key="ButtonBorderBrush" Color="#35475F" />
+      <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="#526A8A" />
+      <SolidColorBrush x:Key="ButtonForeground" Color="#E7EDF6" />
+      <SolidColorBrush x:Key="ButtonForegroundPointerOver" Color="#FFFFFF" />
+      <SolidColorBrush x:Key="ButtonForegroundPressed" Color="#FFFFFF" />
+      <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#1C2A3D" />
+      <SolidColorBrush x:Key="TextControlPlaceholderForeground" Color="#A5B4C9" />
+      <SolidColorBrush x:Key="TextControlPlaceholderForegroundPointerOver" Color="#A5B4C9" />
+      <SolidColorBrush x:Key="TextControlPlaceholderForegroundFocused" Color="#A5B4C9" />
+      <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="#142033" />
+      <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="#627C9E" />
+    </ResourceDictionary>
+  </ResourceDictionary.ThemeDictionaries>
+  <CornerRadius x:Key="ControlCornerRadius">7</CornerRadius>
+  <x:Double x:Key="DataGridRowSelectedBackgroundOpacity">1</x:Double>
+  <x:Double x:Key="DataGridRowSelectedHoveredBackgroundOpacity">1</x:Double>
+  <x:Double x:Key="DataGridRowSelectedUnfocusedBackgroundOpacity">1</x:Double>
+  <x:Double x:Key="DataGridRowSelectedHoveredUnfocusedBackgroundOpacity">1</x:Double>
+</ResourceDictionary>
