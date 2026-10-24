@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=FetchPkg
+Comment=Download and merge PlayStation package manifests
+Exec=FetchPkg
+Icon=folder-download
+Terminal=false
+Categories=Network;FileTransfer;

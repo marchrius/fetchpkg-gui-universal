@@ -1,0 +1,56 @@
+name: Desktop build and smoke tests
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  verify:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - run: dotnet build FetchPkg.sln --configuration Release
+      - run: dotnet run --project tests/FetchPkg.SmokeTests --configuration Release --no-build
+
+  package:
+    needs: verify
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            rid: osx-arm64
+          - os: macos-latest
+            rid: osx-x64
+          - os: ubuntu-latest
+            rid: linux-x64
+          - os: ubuntu-latest
+            rid: linux-arm64
+          - os: windows-latest
+            rid: win-x64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Publish self-contained desktop app
+        shell: bash
+        run: bash publish.sh ${{ matrix.rid }}
+      - name: Preserve Unix executable permissions and bundle symlinks
+        if: runner.os != 'Windows'
+        run: tar -czf publish/FetchPkg-${{ matrix.rid }}.tar.gz -C publish/${{ matrix.rid }} .
+      - uses: actions/upload-artifact@v4
+        if: runner.os != 'Windows'
+        with:
+          name: FetchPkg-${{ matrix.rid }}
+          path: publish/FetchPkg-${{ matrix.rid }}.tar.gz
+      - uses: actions/upload-artifact@v4
+        if: runner.os == 'Windows'
+        with:
+          name: FetchPkg-${{ matrix.rid }}
+          path: publish/${{ matrix.rid }}/

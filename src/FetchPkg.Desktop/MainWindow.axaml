@@ -1,0 +1,66 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="FetchPkg.Desktop.MainWindow"
+        Title="FetchPkg" Width="1220" Height="800" MinWidth="960" MinHeight="650">
+  <Grid Margin="22" RowDefinitions="Auto,Auto,Auto,Auto,*,Auto" RowSpacing="14">
+    <StackPanel Spacing="4">
+      <TextBlock Text="FetchPkg" FontSize="28" FontWeight="SemiBold" />
+      <TextBlock Text="Package downloads · macOS / Linux / Windows" Opacity="0.65" />
+    </StackPanel>
+    <Grid Grid.Row="1" ColumnDefinitions="*,Auto" ColumnSpacing="10">
+      <TextBox x:Name="SourceBox" Watermark="Paste manifest or PKG URLs, one per line"
+               AcceptsReturn="True" Height="76" TextWrapping="Wrap" />
+      <StackPanel Grid.Column="1" Spacing="6">
+        <Button Content="Add links" Click="AddLinks" HorizontalAlignment="Stretch" />
+        <Button Content="Paste links" Click="PasteLinks" HorizontalAlignment="Stretch" />
+      </StackPanel>
+    </Grid>
+    <StackPanel Grid.Row="2" Spacing="10">
+      <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+        <TextBlock Text="Save to" VerticalAlignment="Center" />
+        <TextBox x:Name="OutputBox" Grid.Column="1" />
+        <Button Grid.Column="2" Content="Choose folder…" Click="ChooseFolder" />
+      </Grid>
+      <WrapPanel Orientation="Horizontal">
+        <TextBlock Text="Connections" VerticalAlignment="Center" Margin="0,0,8,0" />
+        <NumericUpDown x:Name="ConnectionsBox" Minimum="1" Maximum="64" Increment="1"
+                       FormatString="0" Width="110" Margin="0,0,18,0" />
+        <TextBlock Text="Segment MiB" VerticalAlignment="Center" Margin="0,0,8,0" />
+        <NumericUpDown x:Name="SegmentBox" Minimum="1" Maximum="1024" Increment="1"
+                       FormatString="0" Width="120" Margin="0,0,18,0" />
+        <CheckBox x:Name="SparseBox" Content="Sparse files" Margin="0,0,18,0" />
+        <CheckBox x:Name="VerifyBox" Content="Verify hashes" Margin="0,0,18,0" />
+        <CheckBox x:Name="IgnoreSslBox" Content="Ignore SSL errors (unsafe)" />
+      </WrapPanel>
+      <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+        <TextBlock Text="HTTP proxy" VerticalAlignment="Center" />
+        <TextBox x:Name="ProxyBox" Grid.Column="1" Watermark="Optional: http://host:port" />
+        <Button Grid.Column="2" Content="PROSPEROPatches ↗" Click="OpenPatches" />
+      </Grid>
+      <TextBlock Text="PROSPEROPatches opens in your browser. Copy the JSON or SC link, then use Paste links. SSL settings apply to downloads only."
+                 Opacity="0.65" TextWrapping="Wrap" />
+    </StackPanel>
+    <WrapPanel Grid.Row="3" Orientation="Horizontal">
+      <Button Content="Start / retry selected" Click="StartSelected" Margin="0,0,8,6" />
+      <Button Content="Pause" Click="PauseSelected" Margin="0,0,8,6" />
+      <Button Content="Resume" Click="ResumeSelected" Margin="0,0,8,6" />
+      <Button Content="Cancel" Click="CancelSelected" Margin="0,0,8,6" />
+      <Button Content="Remove" Click="RemoveSelected" Margin="0,0,8,6" />
+      <Button Content="Open folder" Click="OpenFolder" Margin="0,0,8,6" />
+    </WrapPanel>
+    <DataGrid x:Name="JobsGrid" Grid.Row="4" AutoGenerateColumns="False" IsReadOnly="True"
+              SelectionMode="Extended" GridLinesVisibility="Horizontal" RowHeight="40">
+      <DataGrid.Columns>
+        <DataGridTextColumn Header="Package" Binding="{Binding Name}" Width="230" />
+        <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="105" />
+        <DataGridTextColumn Header="Progress" Binding="{Binding ProgressText}" Width="90" />
+        <DataGridTextColumn Header="Speed" Binding="{Binding Speed}" Width="105" />
+        <DataGridTextColumn Header="ETA" Binding="{Binding Eta}" Width="85" />
+        <DataGridTextColumn Header="Details" Binding="{Binding Details}" Width="*" MinWidth="220" />
+        <DataGridTextColumn Header="Source URL" Binding="{Binding SourceUrl}" Width="300" />
+      </DataGrid.Columns>
+    </DataGrid>
+    <TextBlock x:Name="StatusText" Grid.Row="5" Text="Ready. With no selection, Start runs all unfinished packages."
+               TextWrapping="Wrap" Opacity="0.8" />
+  </Grid>
+</Window>

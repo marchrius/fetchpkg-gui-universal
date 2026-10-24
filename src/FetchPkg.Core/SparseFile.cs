@@ -11,9 +11,17 @@ internal static class SparseFile
     public static bool TryEnable(SafeFileHandle handle, out string? error)
     {
         error = null;
+        // Unix creates holes when SetLength/ftruncate extends a regular file.
+        // There is no Windows-style sparse flag to set. Allocation still depends
+        // on the volume (e.g. APFS/ext4 support holes, FAT volumes may not).
+        if (OperatingSystem.IsMacOS() || OperatingSystem.IsLinux())
+        {
+            return true;
+        }
+
         if (!OperatingSystem.IsWindows())
         {
-            error = "Sparse files are only enabled by this implementation on Windows.";
+            error = "Sparse files are not supported on this operating system.";
             return false;
         }
 

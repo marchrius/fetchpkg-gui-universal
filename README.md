@@ -1,148 +1,173 @@
-# FetchPkg for Windows
+# FetchPkg — macOS, Linux and Windows
 
-A Windows GUI reimplementation of the download workflow used by
-[`ps5-payload-dev/fetchpkg`](https://github.com/ps5-payload-dev/fetchpkg).
-It downloads official PlayStation package data referenced by Sony JSON manifests,
-merges manifest pieces directly into the final PKG, and also supports direct
-single-PKG URLs when no JSON manifest exists.
+Desktop downloader for PlayStation package manifests and standalone PKG files,
+based on the workflow of [fetchpkg](https://github.com/ps5-payload-dev/fetchpkg).
+The new **Avalonia UI** application reuses the existing .NET download engine and
+targets Apple Silicon / Intel Macs, Linux x64 / ARM64 and Windows.
 
-## Implemented features
+## Migration status
 
-- Native Windows Forms interface for Visual Studio 2022 and .NET 8.
-- Package queue with pause, resume, cancel, retry status, speed and ETA.
-- Parallel HTTP range downloading inside large manifest pieces.
-- Parallel downloading of independent manifest pieces.
-- Configurable connection count and segment size.
-- SHA-1 and SHA-256 verification of manifest pieces.
-- Automatic re-download of only the failed piece after a hash mismatch.
-- Crash/cancel-safe resume state in `<file>.fetchpkg.state.json`.
-- NTFS sparse output through `FSCTL_SET_SPARSE`; setting the final logical length
-  does not reserve the whole PKG on disk in advance.
-- Proxy support through `SocketsHttpHandler`.
-- Optional **Ignore SSL errors (unsafe)** mode for both package HTTP requests and
-  the embedded PROSPEROPatches WebView2 browser. It is disabled by default.
-- Embedded PROSPEROPatches browser using Microsoft Edge WebView2:
-  - direct lookup by `PPSAxxxxx`;
-  - search by game name using the site's own current interface;
-  - selection of game updates and additional content;
-  - interception of selected official Sony `.json` or `.pkg` links;
-  - a page scanner for collecting multiple visible download links.
-- Exact PS5 `_sc.pkg` → `.json` conversion while preserving the complete
-  `/app/info/<revision>/f_<hash>/` path.
-- PS5 `/app/pkg/` links are never guessed into JSON URLs: their manifest can use
-  a different revision and hash. The UI asks for the JSON or `_sc.pkg` link instead.
-- Legacy PS4 sibling-manifest conversion remains available for `ppkgo` links.
+The cross-platform implementation, packaging scripts and CI workflow are included.
+**It has not yet been compiled or launched in the migration environment:** that
+environment has no .NET SDK and cannot download one. A successful CI build and
+manual launch on each target are still required before calling this a tested
+release. No compiled application is included in this source folder.
 
-## Why WebView2 is used for PROSPEROPatches
-
-PROSPEROPatches does not publish a stable public API contract. Calling a private
-endpoint would make the application break whenever the site changes its frontend.
-The embedded WebView2 control runs the actual site, so its search, region switch,
-update list and additional-content list remain authoritative. The application only
-intercepts the final public PlayStation download link chosen by the user.
+The original Windows Forms / WebView2 application remains available separately in
+`FetchPkg.Windows.sln`; see [the Windows documentation](docs/WINDOWS.md).
+`FetchPkg.sln` contains only the cross-platform app, core and smoke tests, so it
+does not require Windows targeting or WebView2 on macOS/Linux.
 
 ## Requirements
 
-- Windows 10 or Windows 11 x64.
-- Visual Studio 2022 with the **.NET desktop development** workload, or the .NET 8 SDK.
-- Microsoft Edge WebView2 Runtime. It is normally already present on supported Windows versions.
-- NTFS is recommended. Sparse mode is attempted on other filesystems but can be unavailable.
+- To build: [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) or a newer
+  SDK capable of targeting .NET 8, and access to NuGet for the first restore.
+- macOS: Apple Silicon or Intel. The bundle declares macOS 12 as its minimum;
+  compatibility with individual OS versions still needs runtime validation.
+- Linux: a graphical X11 session (or XWayland), glibc and Avalonia's native graphics
+  dependencies. Typical Debian/Ubuntu packages are `libx11-6 libice6 libsm6
+  libfontconfig1 libfreetype6 libxext6 libxrandr2 libxi6 libxcursor1 libgl1`.
+  Minimal installations may require additional graphics/system libraries.
+- Windows: Windows 10/11 x64 for the desktop build.
 
-## Build in Visual Studio
+Published builds are self-contained and do not require .NET to be installed on
+the destination computer. Linux builds here target glibc distributions, not musl
+or Alpine. The UI uses Avalonia 11.3.10, with trimming and single-file publishing
+disabled to preserve bindings and native dependencies.
 
-1. Open `FetchPkg.Windows.sln`.
-2. Allow NuGet to restore `Microsoft.Web.WebView2`.
-3. Select `Release` and `Any CPU` or `x64`.
-4. Build and run `FetchPkg.Win`.
+## Build and run
 
-Command-line build:
+From this directory, on macOS or Linux:
 
-```bat
-build.cmd
+```sh
+./build.sh
+./run.sh
 ```
 
-Publish a framework-dependent x64 build:
+On any platform (including Windows):
 
-```bat
-publish-win-x64.cmd
+```sh
+dotnet build FetchPkg.sln -c Release
+dotnet run --project src/FetchPkg.Desktop -c Release
 ```
 
-The output is written to `publish\win-x64`.
+## Create an application
+
+```sh
+./publish.sh osx-arm64     # Apple Silicon
+./publish.sh osx-x64       # Intel Mac
+./publish.sh linux-x64
+./publish.sh linux-arm64
+```
+
+Omit the argument to detect the current macOS/Linux architecture. On a Mac:
+
+```sh
+./publish.sh
+open publish/osx-arm64/FetchPkg.app
+```
+
+For Intel, use the `osx-x64` folder. Copy the entire `.app` to Applications if
+desired. Keep all files inside the bundle together. Publishing on macOS adds an
+ad-hoc signature for local use; public distribution still needs a Developer ID
+signature and notarization, which this script does not perform.
+
+On Linux, run `publish/linux-x64/FetchPkg` (or the ARM64 equivalent). The included
+`.desktop` file expects `FetchPkg` on `PATH`; adjust its `Exec` to the absolute
+installed executable path before installing the launcher.
+
+For the new Windows interface:
+
+```powershell
+dotnet publish src/FetchPkg.Desktop -c Release -r win-x64 --self-contained true -o publish/desktop-win-x64
+```
+
+The existing `build.cmd` / `publish-win-x64.cmd` still build the legacy Windows
+application. `publish.sh win-x64` can publish the Avalonia version from Bash.
+Use a fresh publish destination for release packaging when changing dependencies.
 
 ## Usage
 
-1. Choose an output directory.
-2. Either paste a Sony manifest/PKG URL and click **Add**, or open
-   **PROSPEROPatches…**.
-3. In the embedded site, search by a title ID or game name and open the desired
-   update or additional-content entry.
-4. Choose the JSON or SC link for a PS5 update. SC links are converted to the
-   exact sibling JSON URL without changing the revision or hash path. Raw PS5
-   `/app/pkg/` pieces are rejected because their JSON path cannot be inferred.
-   **Find download links** can collect several usable links visible on the page.
-5. Enable **Ignore SSL errors (unsafe)** only when a proxy, TLS inspection appliance,
-   or server with an invalid certificate prevents access. This disables certificate
-   validation for newly started downloads and for newly opened PROSPEROPatches windows.
-6. Select queue entries and click **Start selected**. Existing completed files are
-   not overwritten automatically; a numbered output name is chosen unless a matching
-   resume-state file is present.
+1. Choose the output folder. Each queue entry keeps the destination selected when
+   it was added, even if the output setting subsequently changes.
+2. Paste a Sony JSON manifest, a PS5 `_sc.pkg` link, or a standalone PKG URL.
+   Multiple links can be added together, one per line.
+3. Click **Add links**, or copy links and click **Paste links**.
+4. Select entries and click **Start / retry selected**. With no selection, Start
+   processes all unfinished entries sequentially. Each package uses the configured
+   number of parallel HTTP connections.
+5. Pause, resume, cancel or retry entries as needed. Cancelling preserves partial
+   data and the `.fetchpkg.state.json` sidecar. Removing a queue entry does not
+   delete its files. To resume after restarting the app, add the same URL and
+   select the same output folder; the queue itself is not persisted.
 
-The default is eight concurrent requests with 16 MiB ranges. Increasing the
-connection count can reduce performance or trigger CDN throttling. Values between
-4 and 12 are usually a sensible starting point.
+Completed entries are not restarted. Existing files get a numbered destination
+unless their sidecar identifies the same source. The engine then checks the full
+manifest fingerprint and logical file size before accepting completed ranges.
+Closing stops the pending queue and waits for active downloads to cancel and
+finish saving state.
 
-## PS5 manifest URL handling
+The default is eight connections and 16 MiB segments. Proxy configuration,
+SHA-1/SHA-256 piece verification and automatic retry of corrupt pieces remain
+available. TLS verification is enabled by default. The optional **Ignore SSL
+errors (unsafe)** setting applies to newly started downloads only.
 
-For PS5 title updates, the manifest has this form:
+## PROSPEROPatches and platform differences
 
-```text
-https://sgst.prod.dl.playstation.net/sgst/prod/00/<TITLE_ID>/app/info/<REVISION>/f_<HASH>/<CONTENT_ID>.json
+**PROSPEROPatches ↗** opens the actual site in the default browser. Search there,
+copy the JSON or SC link with the browser's **Copy link address** command, and
+return to FetchPkg to paste it. No private site API is used.
+
+The new app does **not** embed WebView2, intercept browser navigation, scan pages
+for links or change browser certificate handling. Browser proxy/TLS settings
+remain controlled by the browser. Embedded browsing and its page scanner remain
+available only in the legacy Windows app. The new input supports plain-text links;
+Windows `.url` drag-and-drop import is not implemented in this version.
+
+PS5 `_sc.pkg` conversion preserves the entire `/app/info/<revision>/f_<hash>/`
+directory and query string. Numbered `/app/pkg/` pieces require their actual JSON
+manifest; the application never guesses a manifest by rewriting their path.
+Legacy PS4 `ppkgo` sibling conversions are retained.
+
+## Sparse files and resume
+
+On Windows, sparse output is enabled using `FSCTL_SET_SPARSE`. On macOS/Linux,
+extending a regular file with `SetLength` uses the operating system's native hole
+semantics; no Windows DLL is invoked. APFS and filesystems such as ext4 support
+unwritten holes. The sparse indicator on Unix means that this strategy was
+selected, not that the volume's physical allocation has been measured. FAT,
+network shares and other volumes may allocate differently. The checkbox controls
+the explicit sparse strategy; Unix filesystems can create holes even when it is off.
+
+Logical file size can therefore exceed allocated disk space during a download.
+Use `du -h <file>` and `ls -lh <file>` on Unix to compare allocation and logical
+size. SHA checks, range state and atomic state replacement use the same engine
+and sidecar format across all frontends.
+
+Settings are stored below `Environment.SpecialFolder.LocalApplicationData` in
+`FetchPkg/settings.json`. The legacy Windows app uses its separate settings file.
+
+## Verification
+
+```sh
+dotnet run --project tests/FetchPkg.SmokeTests -c Release
 ```
 
-The matching `_sc.pkg` is in the same directory, so replacing only `_sc.pkg` with
-`.json` is safe. Application package pieces are under `/app/pkg/` and can use a
-different revision and hash; changing `_0.pkg` or `-DP.pkg` to `.json` in that path
-produces an invalid URL and is no longer attempted. HTTP failures now include the
-exact request URL in the queue details.
+The dependency-free smoke runner uses deterministic HTTP fixtures and real local
+files. It checks parallel ranges, cancellation/resume, skipping completed ranges,
+SHA-1/SHA-256 verification, corrupt-piece retry, sparse gaps, invalid Content-Range
+rejection, cancellation while paused and PS5 URL normalization. It exits nonzero
+on failure and does not download from Sony.
 
-## Sparse-file behavior
-
-The program first marks the destination handle as sparse, then sets its logical
-length to `originalFileSize`. NTFS allocates physical clusters only for ranges that
-are actually written. This avoids the long full-file zero-fill/preallocation step
-and permits out-of-order range writes.
-
-Explorer still displays the final logical file size. To inspect physical allocation,
-use PowerShell or `fsutil sparse queryflag <file>` and compare `Size` with
-`Size on disk` in file properties.
-
-## Resume format
-
-After each completed range, the program atomically updates:
-
-```text
-<output>.fetchpkg.state.json
-```
-
-The state is accepted only when its schema version, manifest URL, final logical
-size, output-initialization marker, and SHA-256 fingerprint of every manifest piece
-match. It is deleted only after the output has been flushed and all configured hash
-checks succeed. Cancelling the application preserves both the partial sparse PKG
-and this state file.
-
-## Notes
-
-- TLS certificate verification is enabled by default. The optional **Ignore SSL
-  errors (unsafe)** checkbox accepts expired, self-signed, hostname-mismatched, and
-  otherwise untrusted certificates. Use it only on networks and servers you trust.
-- Only public URLs selected by the user are downloaded. The program does not
-  authenticate to PlayStation Network, decrypt packages, bypass licenses, or
-  install content.
-- The PROSPEROPatches site and Sony CDN can change independently of this project.
-  The WebView2 integration is deliberately isolated in `ProsperoBrowserForm.cs`.
+`.github/workflows/desktop.yml` builds and runs these checks on macOS, Linux and
+Windows, then publishes application artifacts for both Mac/Linux architectures
+and Windows x64. These are local build/test definitions until the project is
+placed in a GitHub repository and the workflow runs. UI interaction, Finder
+launch, clipboard integration and actual CDN downloads need manual validation.
 
 ## License
 
-GPL-3.0-or-later, matching the upstream fetchpkg licensing model. WebView2 is a
-Microsoft NuGet dependency under its own license. PROSPEROPatches is not bundled
-and is only displayed as an external website.
+GPL-3.0-or-later. Avalonia and the legacy WebView2 dependency have their own
+licenses. PROSPEROPatches is an external website and is not bundled.
+The application downloads user-selected public URLs; it does not authenticate to
+PSN, decrypt packages, bypass licenses or install content.
