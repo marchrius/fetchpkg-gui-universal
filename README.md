@@ -165,6 +165,53 @@ and Windows x64. These are local build/test definitions until the project is
 placed in a GitHub repository and the workflow runs. UI interaction, Finder
 launch, clipboard integration and actual CDN downloads need manual validation.
 
+## Contributing
+
+Bug reports, fixes and improvements are welcome. For a bug report, include your
+operating system, CPU architecture, application version, steps to reproduce and
+the error message. Remove credentials and private information from logs and URLs.
+
+### Development tools
+
+Install [Git](https://git-scm.com/downloads) and the
+[.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0), choosing ARM64 for
+Apple Silicon or x64 for Intel/AMD computers. Install the **SDK**, not just the
+runtime. Linux also needs the native libraries listed under Requirements above.
+
+An editor is optional for command-line builds. For editing and debugging, use
+Visual Studio Code with C# support, JetBrains Rider, or Visual Studio on Windows.
+Avalonia extensions can add XAML editing and preview support; see the
+[official IDE setup guide](https://docs.avaloniaui.net/docs/get-started/set-up-your-ide).
+Avalonia packages are restored through NuGet; no separate framework installation
+or project templates are required to work on this repository.
+
+### Local workflow
+
+Fork the repository on GitHub, clone your fork and create a branch for your change:
+
+```sh
+git clone https://github.com/YOUR_USERNAME/fetchpkg-gui-universal.git
+cd fetchpkg-gui-universal
+git switch -c feat/describe-your-change
+dotnet --list-sdks
+dotnet restore FetchPkg.sln
+dotnet build FetchPkg.sln -c Release
+dotnet run --project src/FetchPkg.Desktop -c Release
+dotnet run --project tests/FetchPkg.SmokeTests -c Release
+```
+
+Open `FetchPkg.sln` for cross-platform development. The download engine lives in
+`src/FetchPkg.Core`, the Avalonia interface in `src/FetchPkg.Desktop`, and the
+download smoke tests in `tests/FetchPkg.SmokeTests`. Use `FetchPkg.Windows.sln`
+only when working on the legacy Windows Forms application.
+
+Keep changes focused, add tests for download behavior changes, and run the build
+and smoke tests before submitting a pull request. For interface changes, also
+launch the application and check the affected controls. In your pull request,
+describe the change, its purpose, the checks you ran and the platforms you tested;
+include screenshots when they help explain an interface change. Use commit
+messages such as `fix(core): preserve resume state after cancellation`.
+
 ## License
 
 GPL-3.0-or-later. Avalonia and the legacy WebView2 dependency have their own
