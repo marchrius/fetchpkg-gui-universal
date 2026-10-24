@@ -162,9 +162,45 @@ on failure and does not download from Sony.
 
 `.github/workflows/desktop.yml` builds and runs these checks on macOS, Linux and
 Windows, then publishes application artifacts for both Mac/Linux architectures
-and Windows x64. The workflow runs on pushes, pull requests or manual dispatch;
+and Windows x64/ARM64. The workflow runs on pushes, pull requests or manual dispatch;
 its results must be checked for each release. UI interaction, Finder
 launch, clipboard integration and actual CDN downloads need manual validation.
+
+## Automated releases
+
+Push a version tag, such as `v1.0.5` or `1.0.5`, on the commit you want to release.
+The workflow must be present in that commit:
+
+```sh
+git tag v1.0.5
+git push origin v1.0.5
+```
+
+After the build and smoke tests pass on macOS, Linux and Windows, the workflow
+packages six self-contained builds and creates **one GitHub Release** for the tag:
+
+| Platform | Architectures | Release assets |
+| --- | --- | --- |
+| macOS | Apple Silicon, Intel | `FetchPkg-osx-arm64.tar.gz`, `FetchPkg-osx-x64.tar.gz` containing `.app` bundles |
+| Linux | x64, ARM64 | `FetchPkg-linux-x64.tar.gz`, `FetchPkg-linux-arm64.tar.gz` |
+| Windows | x64, ARM64 | `FetchPkg-win-x64.zip`, `FetchPkg-win-arm64.zip` |
+
+Each archive includes the license. `SHA256SUMS.txt` contains checksums for all six
+archives. The release stays in draft until all assets have been uploaded; if any
+build or asset check fails, no new release is published. Rerunning the workflow
+updates the assets on the same release. Tags such as `v1.0.5-rc.1` create a
+prerelease. Branch pushes and pull requests produce build artifacts without
+creating releases. A manual run against an existing version tag also releases it.
+
+The tag sets the binary version; macOS bundle metadata uses its numeric portion.
+Local publishing can override the project version with, for example,
+`FETCHPKG_VERSION=1.0.5 ./publish.sh osx-arm64`. macOS bundles use ad-hoc signing;
+Developer ID signing and notarization are not configured. Cross-published ARM64
+builds still need runtime testing on their target machines.
+
+The workflow uses GitHub's built-in `GITHUB_TOKEN`; no personal access token is
+required. Only its release job has `contents: write` permission. The release job
+uses the [GitHub CLI release commands](https://cli.github.com/manual/gh_release_create).
 
 ## Contributing
 

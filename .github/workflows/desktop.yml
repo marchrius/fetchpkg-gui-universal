@@ -1,5 +1,17 @@
-name: Desktop build and smoke tests
-on: [push, pull_request, workflow_dispatch]
+name: Desktop build, test and release
+on:
+  push:
+    branches: ['**']
+    tags: ['v*', '[0-9]*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   verify:
@@ -32,6 +44,8 @@ jobs:
             rid: linux-arm64
           - os: windows-latest
             rid: win-x64
+          - os: windows-latest
+            rid: win-arm64
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -40,17 +54,67 @@ jobs:
           dotnet-version: '8.0.x'
       - name: Publish self-contained desktop app
         shell: bash
-        run: bash publish.sh ${{ matrix.rid }}
+        env:
+          TARGET_RID: ${{ matrix.rid }}
+        run: |
+          if [[ "$GITHUB_REF_TYPE" == tag ]]; then
+            export FETCHPKG_VERSION="${GITHUB_REF_NAME#v}"
+          fi
+          bash publish.sh "$TARGET_RID"
       - name: Preserve Unix executable permissions and bundle symlinks
         if: runner.os != 'Windows'
         run: tar -czf publish/FetchPkg-${{ matrix.rid }}.tar.gz -C publish/${{ matrix.rid }} .
-      - uses: actions/upload-artifact@v4
-        if: runner.os != 'Windows'
-        with:
-          name: FetchPkg-${{ matrix.rid }}
-          path: publish/FetchPkg-${{ matrix.rid }}.tar.gz
-      - uses: actions/upload-artifact@v4
+      - name: Create Windows archive
         if: runner.os == 'Windows'
+        shell: pwsh
+        env:
+          TARGET_RID: ${{ matrix.rid }}
+        run: Compress-Archive -Path "publish/$env:TARGET_RID/*" -DestinationPath "publish/FetchPkg-$env:TARGET_RID.zip" -Force
+      - uses: actions/upload-artifact@v4
         with:
           name: FetchPkg-${{ matrix.rid }}
-          path: publish/${{ matrix.rid }}/
+          path: publish/FetchPkg-${{ matrix.rid }}.*
+          if-no-files-found: error
+
+  release:
+    name: Publish one release with all platforms
+    needs: package
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: FetchPkg-*
+          merge-multiple: true
+          path: release
+      - name: Verify all archives and generate checksums
+        working-directory: release
+        shell: bash
+        run: |
+          set -euo pipefail
+          for rid in osx-arm64 osx-x64 linux-x64 linux-arm64 win-x64 win-arm64; do
+            extension=tar.gz
+            if [[ "$rid" == win-* ]]; then extension=zip; fi
+            test -s "FetchPkg-$rid.$extension"
+          done
+          sha256sum FetchPkg-*.tar.gz FetchPkg-*.zip > SHA256SUMS.txt
+          sha256sum --check SHA256SUMS.txt
+      - name: Create release, upload all binaries and publish
+        working-directory: release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          flags=()
+          if [[ "$RELEASE_TAG" == *-* ]]; then flags+=(--prerelease --latest=false); fi
+          if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release create "$RELEASE_TAG" --verify-tag --draft \
+              --title "FetchPkg $RELEASE_TAG" --generate-notes ${flags[@]+"${flags[@]}"}
+          fi
+          gh release upload "$RELEASE_TAG" FetchPkg-*.tar.gz FetchPkg-*.zip SHA256SUMS.txt --clobber
+          gh release edit "$RELEASE_TAG" --draft=false ${flags[@]+"${flags[@]}"}

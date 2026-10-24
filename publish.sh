@@ -19,6 +19,16 @@ if ! command -v dotnet >/dev/null 2>&1; then
   echo "The .NET 8 SDK (or newer) is required: https://dotnet.microsoft.com/download" >&2
   exit 127
 fi
+VERSION_ARGS=()
+if [[ -n "${FETCHPKG_VERSION:-}" ]]; then
+  if [[ ! "$FETCHPKG_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z]+([.-][0-9A-Za-z]+)*)?$ ]]; then
+    echo "Invalid release version: $FETCHPKG_VERSION. Expected 1.2.3 or 1.2.3-rc.1." >&2
+    exit 2
+  fi
+  BASE_VERSION="${FETCHPKG_VERSION%%-*}"
+  VERSION_ARGS=("-p:Version=$FETCHPKG_VERSION" "-p:InformationalVersion=$FETCHPKG_VERSION"
+    "-p:AssemblyVersion=$BASE_VERSION.0" "-p:FileVersion=$BASE_VERSION.0")
+fi
 DEST="$ROOT/publish/$RID"
 if [[ "$RID" == osx-* ]]; then
   APP="$DEST/FetchPkg.app"
@@ -31,9 +41,17 @@ fi
 dotnet publish "$ROOT/src/FetchPkg.Desktop/FetchPkg.Desktop.csproj" \
   --configuration Release --runtime "$RID" --self-contained true \
   -p:UseAppHost=true -p:PublishTrimmed=false -p:PublishSingleFile=false \
-  --output "$OUTPUT"
+  --output "$OUTPUT" ${VERSION_ARGS[@]+"${VERSION_ARGS[@]}"}
+cp "$ROOT/LICENSE" "$DEST/LICENSE"
 if [[ "$RID" == osx-* ]]; then
-  cp "$ROOT/packaging/Info.plist" "$APP/Contents/Info.plist"
+  if [[ -n "${FETCHPKG_VERSION:-}" ]]; then
+    # Apple's bundle version fields use the numeric version, without prerelease labels.
+    sed -e "s|<key>CFBundleShortVersionString</key><string>[^<]*</string>|<key>CFBundleShortVersionString</key><string>$BASE_VERSION</string>|" \
+        -e "s|<key>CFBundleVersion</key><string>[^<]*</string>|<key>CFBundleVersion</key><string>$BASE_VERSION</string>|" \
+        "$ROOT/packaging/Info.plist" > "$APP/Contents/Info.plist"
+  else
+    cp "$ROOT/packaging/Info.plist" "$APP/Contents/Info.plist"
+  fi
   chmod +x "$OUTPUT/FetchPkg"
   # Ad-hoc signing is for local use. Developer ID signing and notarization
   # must be performed separately before distributing a release to others.
