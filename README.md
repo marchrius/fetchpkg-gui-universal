@@ -5,14 +5,8 @@ based on the workflow of [fetchpkg](https://github.com/ps5-payload-dev/fetchpkg)
 The new **Avalonia UI** application reuses the existing .NET download engine and
 targets Apple Silicon / Intel Macs, Linux x64 / ARM64 and Windows.
 
-## Migration status
-
-The cross-platform implementation, packaging scripts and CI workflow are included.
-The Release build and download smoke tests have passed on macOS Apple Silicon
-with .NET SDK 8.0.426, with no build warnings or errors. UI interaction, application
-packaging and runtime behavior on the other targets still need validation before
-calling this a tested cross-platform release. No packaged release is included in
-this source folder.
+Download self-contained binaries for your platform from
+[GitHub Releases](https://github.com/marchrius/fetchpkg-gui-universal/releases).
 
 The original Windows Forms / WebView2 application remains available separately in
 `FetchPkg.Windows.sln`; see [the Windows documentation](docs/WINDOWS.md).
@@ -150,6 +144,11 @@ Settings are stored below `Environment.SpecialFolder.LocalApplicationData` in
 
 ## Verification
 
+The application has been built and launched successfully on macOS Apple Silicon.
+The Release build completes without warnings or errors, and the download smoke
+tests pass. GitHub Actions also builds and runs the smoke tests on Linux and
+Windows before packaging a release.
+
 ```sh
 dotnet run --project tests/FetchPkg.SmokeTests -c Release
 ```
@@ -162,9 +161,9 @@ on failure and does not download from Sony.
 
 `.github/workflows/desktop.yml` builds and runs these checks on macOS, Linux and
 Windows, then publishes application artifacts for both Mac/Linux architectures
-and Windows x64/ARM64. The workflow runs on pushes, pull requests or manual dispatch;
-its results must be checked for each release. UI interaction, Finder
-launch, clipboard integration and actual CDN downloads need manual validation.
+and Windows x64/ARM64. The workflow runs on pushes, pull requests or manual dispatch.
+When testing changes, also check the affected interface controls, clipboard
+integration and downloads on the target platform.
 
 ## Automated releases
 
