@@ -8,10 +8,11 @@ targets Apple Silicon / Intel Macs, Linux x64 / ARM64 and Windows.
 ## Migration status
 
 The cross-platform implementation, packaging scripts and CI workflow are included.
-**It has not yet been compiled or launched in the migration environment:** that
-environment has no .NET SDK and cannot download one. A successful CI build and
-manual launch on each target are still required before calling this a tested
-release. No compiled application is included in this source folder.
+The Release build and download smoke tests have passed on macOS Apple Silicon
+with .NET SDK 8.0.426, with no build warnings or errors. UI interaction, application
+packaging and runtime behavior on the other targets still need validation before
+calling this a tested cross-platform release. No packaged release is included in
+this source folder.
 
 The original Windows Forms / WebView2 application remains available separately in
 `FetchPkg.Windows.sln`; see [the Windows documentation](docs/WINDOWS.md).
@@ -161,8 +162,8 @@ on failure and does not download from Sony.
 
 `.github/workflows/desktop.yml` builds and runs these checks on macOS, Linux and
 Windows, then publishes application artifacts for both Mac/Linux architectures
-and Windows x64. These are local build/test definitions until the project is
-placed in a GitHub repository and the workflow runs. UI interaction, Finder
+and Windows x64. The workflow runs on pushes, pull requests or manual dispatch;
+its results must be checked for each release. UI interaction, Finder
 launch, clipboard integration and actual CDN downloads need manual validation.
 
 ## Contributing

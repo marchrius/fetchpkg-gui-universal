@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Input.Platform;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using FetchPkg.Core;
@@ -39,7 +40,7 @@ public sealed partial class MainWindow : Window
         try
         {
             if (Clipboard is not null)
-                AddText(await Clipboard.GetTextAsync());
+                AddText(await Clipboard.TryGetTextAsync());
         }
         catch (Exception ex) { StatusText.Text = $"Cannot read clipboard: {ex.Message}"; }
     }
